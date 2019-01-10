@@ -7,6 +7,9 @@
   },
   "author": "Adam Engebretson <adam@adeohs.com>",
   "license": "ISC",
+  "keywords": [
+    "node-red"
+  ],
   "node-red": {
     "nodes": {
       "gql-sub": "gql-sub.js"
