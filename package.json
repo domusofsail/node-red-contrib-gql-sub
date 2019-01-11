@@ -1,14 +1,17 @@
 {
   "name": "node-red-contrib-gql-sub",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A NodeRED Input Node providing GraphQL Subscription Results",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": "github:adamgoose/node-red-contrib-gql-sub",
   "author": "Adam Engebretson <adam@adeohs.com>",
   "license": "MIT",
   "keywords": [
-    "node-red"
+    "node-red",
+    "graphql",
+    "subscriptions"
   ],
   "node-red": {
     "nodes": {
