@@ -14,6 +14,11 @@ module.exports = function (RED) {
       this.error("invalid graphql config");
     }
 
+    if (!config.active) {
+      node.status({ fill: "grey", shape: 'ring', text: 'Inactive' })
+      return
+    }
+
     node.status({ fill: 'yellow', shape: 'ring', text: 'Disconnected' })
     const link = new WebSocketLink({
       uri: node.graphqlConfig.endpoint,
@@ -130,4 +135,27 @@ module.exports = function (RED) {
 
     return JSON.stringify(output);
   }
+
+  // RED.httpAdmin.post("/gql-sub/:id/:state", function (req, res) {
+  //   var node = RED.nodes.getNode(req.params.id);
+  //   var state = req.params.state;
+  //   if (node !== null && typeof node !== "undefined") {
+  //     if (state === "enable") {
+  //       node.active = true;
+  //       res.sendStatus(200);
+  //       node.status({ fill: "grey", shape: "dot" });
+  //     } else if (state === "disable") {
+  //       node.active = false;
+  //       res.sendStatus(201);
+  //       if (node.hasOwnProperty("oldStatus")) {
+  //         node.oldStatus.shape = "dot";
+  //         node.status(node.oldStatus);
+  //       }
+  //     } else {
+  //       res.sendStatus(404);
+  //     }
+  //   } else {
+  //     res.sendStatus(404);
+  //   }
+  // });
 }
