@@ -8,6 +8,7 @@ module.exports = function (RED) {
   function GraphQLSubscriptionNode (config) {
     RED.nodes.createNode(this, config);
     var node = this;
+    node.msgCount = 0;
     node.graphqlConfig = RED.nodes.getNode(config.graphql);
 
     if (!node.graphqlConfig) {
@@ -20,49 +21,46 @@ module.exports = function (RED) {
     }
 
     node.status({ fill: 'yellow', shape: 'ring', text: 'Disconnected' })
-    const link = new WebSocketLink({
-      uri: node.graphqlConfig.endpoint,
-      options: {
-        reconnect: true,
-        // connectionCallback (err) {
-        //   RED.log.trace("ConnectionCallback Error: " + safeJSONStringify(err))
-        //   if (err) {
-        //     node.status({ fill: 'red', shape: 'ring', text: err })
-        //   } else {
-        //     node.status({ fill: 'green', shape: 'ring', text: 'Connected' })
-        //   }
-        // }
-      },
-      webSocketImpl: ws
-    })
-    link.subscriptionClient.onConnected(() => {
-      node.debug('Connected')
-      node.status({ fill: 'green', shape: 'ring', text: 'Connected' })
-    })
-    link.subscriptionClient.onDisconnected(() => {
-      // node.status({ fill: 'yellow', shape: 'ring', text: 'Disconnected' })
-    })
-    link.subscriptionClient.onError(err => {
-      node.error("connection error: " + err.message, {})
-      node.status({ fill: 'red', shape: 'ring', text: 'Error: ' + err.message })
-    })
-    const client = new ApolloClient({ link, cache: new InMemoryCache() })
+    function startSub () {
+      var link = new WebSocketLink({
+        uri: node.graphqlConfig.endpoint,
+        options: { reconnect: true },
+        webSocketImpl: ws
+      })
+      link.subscriptionClient.onConnected(() => {
+        node.debug('Connected')
+        node.status({ fill: 'green', shape: 'ring', text: 'Connected' })
+      })
+      link.subscriptionClient.onDisconnected(() => {
+        // node.status({ fill: 'yellow', shape: 'ring', text: 'Disconnected' })
+      })
+      link.subscriptionClient.onError(err => {
+        node.error("connection error: " + err.message, {})
+        node.status({ fill: 'red', shape: 'ring', text: 'Error: ' + err.message })
+      })
+      node.link = link
+      var client = new ApolloClient({ link, cache: new InMemoryCache() })
 
-    client.subscribe({
-      fetchPolicy: 'network-only',
-      query: gql`${config.template}`
-    }).subscribe({
-      next (data) {
-        node.send({ payload: data })
-      },
-      error (err) {
-        RED.log.error(err)
-      }
-    })
+      client.subscribe({
+        fetchPolicy: 'network-only',
+        query: gql`${config.template}`
+      }).subscribe({
+        next (data) {
+          node.send({ payload: data })
+          node.msgCount++
+          node.status({ fill: 'green', shape: 'ring', text: `Connected: ${node.msgCount}` })
+        },
+        error (err) {
+          RED.log.error(err)
+          node.status({ fill: 'red', shape: 'ring', text: 'Query Error: ' + err.message })
+        }
+      })
+    }
+    startSub()
 
     node.on('close', function () {
       node.status({ fill: 'yellow', shape: 'ring', text: 'Disconnected' })
-      link.subscriptionClient.close()
+      node.link.subscriptionClient.close()
     });
   }
   RED.nodes.registerType("gql-sub", GraphQLSubscriptionNode);
