@@ -7,6 +7,10 @@
       <label for="node-config-input-endpoint"><i class="fa fa-bookmark"></i> Endpoint</label>
       <input type="text" id="node-config-input-endpoint">
   </div>
+  <div class="form-row">
+      <label for="node-config-input-connectionretrytimeout"><i class="fa fa-hourglass-half"></i> Connection Retry Timeout</label>
+      <input type="text" id="node-config-input-connectionretrytimeout">
+  </div>
 </script>
 
 <script type="text/javascript">
@@ -18,7 +22,8 @@
       token: { value: "", required: false },
       user: { value: "", required: false },
       password: { value: "", required: false },
-      name: { value: "", required: false }
+      name: { value: "", required: false },
+      connectionretrytimeout: { value: "5000", required: true }
     },
     credentials: {
       user: { type: "text" },

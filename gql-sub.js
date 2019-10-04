@@ -24,7 +24,7 @@ module.exports = function (RED) {
     function startSub () {
       var link = new WebSocketLink({
         uri: node.graphqlConfig.endpoint,
-        options: { reconnect: true },
+        options: { reconnect: false },
         webSocketImpl: ws
       })
       link.subscriptionClient.onConnected(() => {
@@ -37,6 +37,10 @@ module.exports = function (RED) {
       link.subscriptionClient.onError(err => {
         node.error("connection error: " + err.message, {})
         node.status({ fill: 'red', shape: 'ring', text: 'Error: ' + err.message })
+        setTimeout(() => {
+          node.log('reconnecting')
+          startSub()
+        }, (node.graphqlConfig.connectionretrytimeout * 1) || 5000)
       })
       node.link = link
       var client = new ApolloClient({ link, cache: new InMemoryCache() })
@@ -73,7 +77,9 @@ module.exports = function (RED) {
     // RED.log.debug("--- GraphqlNode v" + vers + " ---");
     RED.log.debug("GraphqlServerNode node: " + safeJSONStringify(node));
     RED.log.trace("GraphqlServerNode config: " + safeJSONStringify(config));
+    // console.log(safeJSONStringify(config))
     node.endpoint = config.endpoint;
+    node.connectionretrytimeout = config.connectionretrytimeout;
   }
   RED.nodes.registerType("gql-sub-server", GraphqlServerNode, {
     credentials: {
